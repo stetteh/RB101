@@ -8,6 +8,10 @@ def valid_number?(num)
   num.to_i > 0
 end
 
+def valid_interest_rate?(num)
+  num.to_i >= 0
+end
+
 # welcome message
 prompt("Welcome to Mortgage Calculator!")
 prompt("-------------------------------")
@@ -18,14 +22,12 @@ def get_name
   prompt('Please enter your name')
 
   loop do
-    name = Kernel.gets().chomp()
+    name = gets.chomp
 
-    if name.empty?()
-      prompt("Make sure to enter a valid name")
-    else
-      break
-    end
+    break unless name.empty?
+    prompt("Make sure to enter a valid name")
   end
+
   name
 end
 
@@ -35,10 +37,11 @@ def get_loan_amount
   prompt('What is the loan amount?')
 
   loop do
-    loan_amount = Kernel.gets().chomp
+    loan_amount = gets.chomp
 
     break if valid_number?(loan_amount)
-    prompt('Please enter a valid loan amount')
+    prompt('Please enter a valid loan amount,
+            amount should be positive & greater than zero')
   end
   loan_amount
 end
@@ -49,7 +52,7 @@ def get_loan_duration
 
   prompt('What is the loan duration (in years)?')
   loop do
-    years = Kernel.gets().chomp()
+    years = gets.chomp
 
     break if valid_number?(years)
     prompt('Please enter a valid loan duration')
@@ -65,44 +68,53 @@ def get_loan_apr
   prompt("(Example: 5 for 5% or 2.5 for 2.5%)")
 
   loop do
-    loan_apr = Kernel.gets().chomp()
+    loan_apr = gets.chomp
 
-    break if valid_number?(loan_apr)
+    break if valid_interest_rate?(loan_apr)
     prompt('Please enter a valid interest rate')
   end
   loan_apr
 end
 
-def caluclate_monthly_payment(loan_amount, loan_apr, years)
-  months = years.to_i() * 12
+def calculate_monthly_payment(loan_amount, loan_apr, years)
+  months = years.to_i * 12
 
-  annual_interest_rate = loan_apr.to_f() / 100
+  annual_interest_rate = loan_apr.to_f / 100
   monthly_interest_rate = annual_interest_rate / 12
 
-  monthly_payment = loan_amount.to_f() *
-                    (monthly_interest_rate /
-                    (1 - (1 + monthly_interest_rate)**(-months)))
+  if annual_interest_rate != 0
+    loan_amount.to_f * (monthly_interest_rate /
+                        (1 - (1 + monthly_interest_rate)**(-months)))
+  else
+    loan_amount.to_f / months
+  end
 end
 
 def display_monthly_rate(name, monthly_payment)
   prompt("#{name} Your monthly payment is: $#{format('%.2f', monthly_payment)}")
 end
 
+def caluclate_again?
+  prompt("Another calculation?")
+  answer = gets.chomp
+
+  %w(y yes).include?(answer)
+end
+
+name = get_name
+
 loop do
-  name = get_name
   loan_amount = get_loan_amount
   years = get_loan_duration
   loan_apr = get_loan_apr
 
-  monthly_payment = caluclate_monthly_payment(loan_amount, loan_apr, years)
+  monthly_payment = calculate_monthly_payment(loan_amount, loan_apr, years)
 
   display_monthly_rate(name, monthly_payment)
 
-  prompt("Another calculation?")
-  answer = Kernel.gets().chomp()
-
-  break unless answer.downcase().start_with?('y')
+  break unless caluclate_again?
+  system('clear')
 end
 
 prompt("Thank you for using the Mortgage Calculator!")
-prompt("Good bye!")
+prompt("Good bye! #{name}")
